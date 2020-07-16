@@ -101,6 +101,7 @@ import paho.mqtt.client as mqtt
 import random
 import sys
 import time
+import datetime
 
 try:
     import cjson as json
@@ -502,8 +503,14 @@ class MQTTThread(weewx.restx.RESTThread):
                 if self.aggregation.find('individual') >= 0:
                     for key in data:
                         tpc = self.topic + '/' + key
-                        (res, mid) = mc.publish(tpc, data[key],
-                                                retain=self.retain)
+                        (res, mid) = mc.publish(
+                            tpc,
+                            json.dumps({
+                                'ts': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                                'value': float(data[key])
+                            }),
+                            retain=self.retain
+                        )
                         if res != mqtt.MQTT_ERR_SUCCESS:
                             logerr("publish failed for %s: %s" % (tpc, res))
                 mc.loop_stop()
