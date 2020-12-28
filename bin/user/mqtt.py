@@ -391,7 +391,7 @@ class MQTTThread(weewx.restx.RESTThread):
                  post_interval=None, stale=None,
                  log_success=True, log_failure=True,
                  timeout=60, max_tries=3, retry_wait=5,
-                 max_backlog=sys.maxsize):
+                 max_backlog=sys.maxsize, timezone='utc'):
         super(MQTTThread, self).__init__(queue,
                                          protocol_name='MQTT',
                                          manager_dict=manager_dict,
@@ -430,6 +430,8 @@ class MQTTThread(weewx.restx.RESTThread):
         self.aggregation = aggregation
         self.templates = dict()
         self.skip_upload = skip_upload
+        self.timezone = pytz.timezone(timezone)
+
         self.mc = None
         self.mc_try_time = 0
 
@@ -536,7 +538,7 @@ class MQTTThread(weewx.restx.RESTThread):
                 (res, mid) = self.mc.publish(
                     tpc,
                     json.dumps({
-                        'ts': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                        'ts': datetime.datetime.now(self.timezone).isoformat(),
                         'value': float(data[key])
                     }),
                     retain=self.retain
