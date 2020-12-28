@@ -117,8 +117,9 @@ import weewx
 import weewx.restx
 import weewx.units
 from weeutil.weeutil import to_int, to_bool, accumulateLeaves
+import pytz
 
-VERSION = "0.23"
+VERSION = "0.23.1"
 
 if weewx.__version__ < "3":
     raise weewx.UnsupportedFeature("weewx 3 is required, found %s" %
@@ -380,7 +381,7 @@ class MQTTThread(weewx.restx.RESTThread):
                  post_interval=None, stale=None,
                  log_success=True, log_failure=True,
                  timeout=60, max_tries=3, retry_wait=5,
-                 max_backlog=sys.maxsize):
+                 max_backlog=sys.maxsize,timezone='utc'):
         super(MQTTThread, self).__init__(queue,
                                          protocol_name='MQTT',
                                          manager_dict=manager_dict,
@@ -419,6 +420,7 @@ class MQTTThread(weewx.restx.RESTThread):
         self.aggregation = aggregation
         self.templates = dict()
         self.skip_upload = skip_upload
+        self.timezone = pytz.timezone(timezone)
 
     def filter_data(self, record):
         # if uploading everything, we must check the upload variables list
@@ -506,7 +508,7 @@ class MQTTThread(weewx.restx.RESTThread):
                         (res, mid) = mc.publish(
                             tpc,
                             json.dumps({
-                                'ts': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                                'ts': datetime.datetime.now(self.timezone).isoformat(),
                                 'value': float(data[key])
                             }),
                             retain=self.retain
