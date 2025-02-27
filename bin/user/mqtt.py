@@ -127,6 +127,7 @@ import weewx
 import weewx.restx
 import weewx.units
 from weeutil.weeutil import to_int, to_bool, accumulateLeaves
+import pytz
 
 VERSION = "0.24"
 
